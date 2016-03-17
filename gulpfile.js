@@ -53,6 +53,14 @@ gulp.task('coverageServer', () => {
   });
 });
 
+gulp.task('examples', () => {
+  connect.server({
+    root: 'examples',
+    port: 8002,
+    livereload: false
+  });
+});
+
 gulp.task('html', function () {
   gulp.src('./coverage/*.html')
     .pipe(connect.reload());
