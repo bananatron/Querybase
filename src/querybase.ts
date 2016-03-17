@@ -319,23 +319,24 @@ class Querybase {
   private _createQueryPredicate(criteria): QueryPredicate {
     // retrieve the keys and values array
     const keys = _.keys(criteria);
-    const values = _.values(criteria);
-
+    
     // warn about the indexes for indexOn rules
     this._warnAboutIndexOnRule();
 
     // for only one criteria in the object, use the key and vaue
     if (!_.hasMultipleCriteria(keys)) {
+      const values = _.values(criteria);
       return {
         predicate: keys[0],
         value: values[0]
       };
     }
 
+    const indexed = this._createCompositeIndex(keys, criteria);
     // for multiple criteria in the object, 
     // encode the keys and values provided
-    const criteriaIndex = this.encodeKey(keys.join('_'));
-    const criteriaValues = this.encodeKey(values.join('_'));
+    const criteriaIndex = this.encodeKey(_.keys(indexed)[0]);
+    const criteriaValues = this.encodeKey(_.values(indexed)[0]);
 
     return {
       predicate: criteriaIndex,
@@ -413,7 +414,7 @@ class Querybase {
    *    'age_location': '27_SF'
    *  }
    */
-  private _createCompositeIndex(indexes: any[], data: Object, indexHash?: Object) {
+  private _createCompositeIndex(indexes: string[], data: Object, indexHash?: Object) {
     
     if(!Array.isArray(indexes)) {
       throw new Error(`_createCompositeIndex expects an array for the first parameter: found ${indexes.toString()}`)
@@ -427,8 +428,8 @@ class Querybase {
       throw new Error(`_createCompositeIndex expects an object for the second parameter: found ${data.toString()}`);
     }
     
-    // create a copy of the array to not modifiy the original properties
-    const propCop = indexes.slice();
+    // create a copy of the array to not modify the original properties
+    const propCop = indexes.slice().sort((a,b) => a.localeCompare(b));
     // remove the first property, this ensures no 
     // redundant keys are created (age_name vs. name_age)
     const mainProp = propCop.shift();
@@ -476,13 +477,14 @@ class Querybase {
     if(!_.isObject(indexWithData)) {
       throw new Error(`_encodeCompositeIndex expects an object: found ${indexWithData.toString()}`);
     }
+    
     const values = _.values(indexWithData);
     const keys = _.keys(indexWithData);
-    const encodedValues = this.encodeKeys(values);
+    const encodedValues = this.encodeKeys(values)
     const encodedKeys = this.encodeKeys(keys);
     return _.arraysToObject(encodedKeys, encodedValues);
   }
-
+  
   /**
    * Encode (base64) all keys and data to avoid collisions with the
    * chosen Querybase delimiter key (_)

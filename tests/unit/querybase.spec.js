@@ -221,6 +221,45 @@ describe('Querybase', () => {
       
     });
     
+    it('should create the same predicate regardless of key order', () => {
+      const pred = queryRef._createQueryPredicate({ eyes: 'BR', chair: false });
+      const pred2 = queryRef._createQueryPredicate({ chair: false, eyes: 'BR' });
+      
+      assert.deepEqual(pred, pred2);
+    });
+    
+    it('should create the same predicate regardless of key order', () => {
+      const pred = queryRef._createQueryPredicate({
+        name: 'David',
+        age: 27,
+        location: 'SF',
+        color: 'Blue',
+        height: 67,
+        size: 'S',
+        hair: 'BR',
+        eyes: 'BR',
+        mouth: true,
+        chair: false,
+        tv: false
+      });
+      
+      const pred2 = queryRef._createQueryPredicate({
+        name: 'David',
+        size: 'S',
+        hair: 'BR',
+        mouth: true,
+        location: 'SF',
+        color: 'Blue',
+        tv: false,
+        eyes: 'BR',
+        height: 67,
+        chair: false,
+        age: 27,
+      });
+      
+      assert.deepEqual(pred, pred2);
+    });
+    
   });
   
   describe('_createCompositeIndex', () => {
@@ -228,14 +267,38 @@ describe('Querybase', () => {
     it('should create a composite index', () => {
 
       const compositeIndex = queryRef._createCompositeIndex(indexes, {
-        color: 'Blue',
         height: 67,
-        weight: 130
+        weight: 130,
+        color: 'Blue'
       });
       
       assert.deepEqual(compositeIndex, expectedIndex);
       
     });
+    
+    it('should create a composite index with a different key ordering', () => {
+
+      const compositeIndex = queryRef._createCompositeIndex(indexes, {
+        weight: 130,
+        height: 67,
+        color: 'Blue'
+      });
+      
+      assert.deepEqual(compositeIndex, expectedIndex);
+      
+    }); 
+    
+    it('should create a composite index with a different key ordering', () => {
+
+      const compositeIndex = queryRef._createCompositeIndex(indexes, {
+        color: 'Blue',
+        weight: 130,
+        height: 67
+      });
+      
+      assert.deepEqual(compositeIndex, expectedIndex);
+      
+    });        
     
     it('should throw if no indexes are provided', () => {
       const errorWrapper = () => queryRef._createCompositeIndex();
